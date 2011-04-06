@@ -37,7 +37,7 @@ public class BatchInsert implements GlobalConst
 		AttrType[] type = new AttrType[numColumns];
 		String[] colName = new String[numColumns];
 		
-		File file = new File("/tmp/" + columnarFileName + "_schema.txt");
+		File file = new File(DIRPATH + columnarFileName + "_schema.txt");
 		PrintWriter pw = new PrintWriter(file);
 		
 		for(int i = 0; i < parameterType.length; i++)
@@ -89,7 +89,7 @@ public class BatchInsert implements GlobalConst
 			
 			
 			RID[] rd=tid.getRecordIDs();
-			File cnt_file=new File(columnarFileName+"tuple_cnter.txt");
+			File cnt_file=new File(columnarFileName + "tuple_cnter.txt");
 			if(!cnt_file.exists()){
 				cnt_file.createNewFile();
 			}
@@ -99,7 +99,7 @@ public class BatchInsert implements GlobalConst
 			{
 				String line=sc_Tcount.nextLine();
 				line=line.trim();
-				Pattern pattern=Pattern.compile(columnarFileName+"tuple_count:[\\d]+");
+				Pattern pattern=Pattern.compile(columnarFileName + "tuple_count:[\\d]+");
 				Matcher matcher=pattern.matcher(line);
 				while(matcher.find()){
 					String k=matcher.group();
@@ -134,7 +134,7 @@ public class BatchInsert implements GlobalConst
 			}
 */			
 			cnt++;
-			pw_cnt.println(columnarFileName+"tuple_count:"+cnt);
+			pw_cnt.println(columnarFileName + "tuple_count: " + cnt);
 			pw_cnt.flush();
 			pw_cnt.close();
 		//End
@@ -153,7 +153,7 @@ public class BatchInsert implements GlobalConst
 	
 	static void initDB(String columnDBName)
 	{
-		 String dbpath = "/tmp/" + System.getProperty("user.name") + ".minibase." + columnDBName;
+		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase." + columnDBName;
 		 File f = new File(dbpath);
 		 if(!f.exists())
 		 {

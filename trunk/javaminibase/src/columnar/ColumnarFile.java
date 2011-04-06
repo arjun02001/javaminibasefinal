@@ -322,7 +322,7 @@ public class ColumnarFile implements GlobalConst
 	}
 	
 	public boolean createBitMapIndex(int columnNo, ValueClass value) throws Exception{
-		Scanner sc_ColsName=new Scanner(new File("/tmp/" + name + "_schema.txt"));
+		Scanner sc_ColsName=new Scanner(new File(DIRPATH + name + "_schema.txt"));
 		String colName=null;
 		while(sc_ColsName.hasNextLine()){
 			String line=sc_ColsName.nextLine();
@@ -486,7 +486,7 @@ public class ColumnarFile implements GlobalConst
 	// Getting distict values for the target column
 public boolean distinctValues(int column) throws Exception{
 		
-		Scanner sc_ColsName=new Scanner(new File("/tmp/" + name + "_schema.txt"));
+		Scanner sc_ColsName=new Scanner(new File(DIRPATH + name + "_schema.txt"));
 		String colName=null;
 		int victimColumnNumber=column;
 		int check=0;

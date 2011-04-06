@@ -84,7 +84,7 @@ public class ColumnTest implements GlobalConst
 	
 	static void initDB()
 	{
-		 String dbpath = "/tmp/" + System.getProperty("user.name") + ".minibase.jointestdb";
+		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase.jointestdb";
 		 SystemDefs sysdef = new SystemDefs( dbpath, 1000, 50, "Clock" );
 	}
 }

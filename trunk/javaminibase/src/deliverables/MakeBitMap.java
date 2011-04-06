@@ -25,7 +25,7 @@ public class MakeBitMap implements GlobalConst{
 		String columnName=args[2].trim();				//A
 		PCounter.initialize();
 		initDB(columnarDBName, 50);
-		Scanner s1 = new Scanner(new File("/tmp/" + columnarFileName + "_schema.txt"));
+		Scanner s1 = new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
 		int numColumns = 0;
 		while(s1.hasNextLine())	//count the no. of lines in schema file
 		{
@@ -33,7 +33,7 @@ public class MakeBitMap implements GlobalConst{
 			numColumns++;
 		}
 		s1.close();
-		s1 = new Scanner(new File("/tmp/" + columnarFileName + "_schema.txt"));
+		s1 = new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
 		AttrType[] type = new AttrType[numColumns];
 		int j = 0;
 		int strCount = 0;
@@ -53,7 +53,7 @@ public class MakeBitMap implements GlobalConst{
 		s1.close();
 		try {
 			ColumnarFile cf=new ColumnarFile(columnarFileName,numColumns,type);
-			Scanner sc_ColsName=new Scanner(new File("/tmp/" + columnarFileName + "_schema.txt"));
+			Scanner sc_ColsName=new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
 			int column=0;
 			while(sc_ColsName.hasNextLine()){
 				String line=sc_ColsName.nextLine();
@@ -94,7 +94,7 @@ public class MakeBitMap implements GlobalConst{
 	}
 	static void initDB(String dbname, int numBuf)
 	{
-		 String dbpath = "/tmp/" + System.getProperty("user.name") + ".minibase."+dbname;
+		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase."+dbname;
 		 SystemDefs sysdef = new SystemDefs( dbpath, 100000, numBuf, "Clock" );
 		 
 	}
