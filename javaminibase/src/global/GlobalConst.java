@@ -33,4 +33,5 @@ public interface GlobalConst {
   
   //Fixed size for string
   public static final int STRINGSIZE = 100;
+  public static final String DIRPATH = "/host/";
 }

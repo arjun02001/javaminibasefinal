@@ -49,7 +49,7 @@ public class Index implements GlobalConst {
 		
 		initDB(dbname, 1000);
 		
-		Scanner s1 = new Scanner(new FileInputStream("/tmp/" + columnFile + "_schema.txt"));
+		Scanner s1 = new Scanner(new FileInputStream("/host/" + columnFile + "_schema.txt"));
 		int numColumns = 0;
 		while(s1.hasNextLine())	//count the no. of lines in schema file
 		{
@@ -58,7 +58,7 @@ public class Index implements GlobalConst {
 		}
 		s1.close();
 		
-		Scanner s2 = new Scanner(new FileInputStream("/tmp/" + columnFile + "_schema.txt"));
+		Scanner s2 = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
 		AttrType[] type = new AttrType[numColumns];
 		
 		int j = 0;
@@ -107,7 +107,7 @@ public class Index implements GlobalConst {
 	
 	private static int getVictimColumnNumber(String victimColumnName) throws FileNotFoundException 
 	{
-		Scanner s = new Scanner(new FileInputStream("/tmp/" + columnFile + "_schema.txt"));
+		Scanner s = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
 		while(s.hasNext())
 		{
 			String[] colsInSchema = s.nextLine().split("\t");
@@ -122,7 +122,7 @@ public class Index implements GlobalConst {
 	
 	static void initDB(String dbname, int numBuf)
 	{
-		 String dbpath = "/tmp/" + System.getProperty("user.name") + ".minibase."+dbname;
+		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase."+dbname;
 		 SystemDefs sysdef = new SystemDefs( dbpath, 1000, numBuf, "Clock" );
 	}
 	
