@@ -175,7 +175,7 @@ public class Delete_query implements GlobalConst {
 			
 			cf.createBTreeIndex(victimColumnNumber);
 			ColumnIndexScan dummy = new ColumnIndexScan();
-			dummy.scanBTreeIndex(cf, victimColumnNumber, expr);
+			dummy.checkIndex(cf, victimColumnNumber, expr);
 			
 			dummy.deleteTuple(cf, victimColumnNumber, expr);
 
