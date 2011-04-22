@@ -37,6 +37,7 @@ public class BatchInsert implements GlobalConst
 		AttrType[] type = new AttrType[numColumns];
 		String[] colName = new String[numColumns];
 		
+
 		File file = new File(DIRPATH + columnarFileName + "_schema.txt");
 		PrintWriter pw = new PrintWriter(file);
 		
@@ -110,7 +111,16 @@ public class BatchInsert implements GlobalConst
 			}
 			sc_Tcount.close();
 			PrintWriter pw_cnt=new PrintWriter(cnt_file);
+		
 			
+			File Deletefile = new File("C://tmp//" + columnarFileName + "_delete.txt");
+			RandomAccessFile raF = new RandomAccessFile(Deletefile, "rw");
+			raF.seek(0);
+			for (int i=0; i < 2*(numTuplesInserted+1); i++)
+				raF.write(48);
+			raF.close();
+
+
 /*			
 			File fr=new File(columnarFileName);
 			if(!fr.exists()){
@@ -153,7 +163,9 @@ public class BatchInsert implements GlobalConst
 	
 	static void initDB(String columnDBName)
 	{
+
 		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase." + columnDBName;
+
 		 File f = new File(dbpath);
 		 if(!f.exists())
 		 {
