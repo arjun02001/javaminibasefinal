@@ -17,7 +17,7 @@ import java.util.Scanner;
  * about the tuples and the index are passed to the constructor, then the user
  * calls <code>get_next()</code> to get the tuples.
  */
-public class ColumnIndexScan extends Iterator {
+public class ColumnIndexScan extends Iterator implements GlobalConst{
 
 	
 	public ColumnIndexScan()
@@ -261,7 +261,7 @@ public class ColumnIndexScan extends Iterator {
 
 	private static int getVictimColumnNumber(String columnFile, String victimColumnName) throws FileNotFoundException 
 	{
-		Scanner s = new Scanner(new FileInputStream("C://tmp//" + columnFile + "_schema.txt"));
+		Scanner s = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
 		while(s.hasNext())
 		{
 			String[] colsInSchema = s.nextLine().split("\t");

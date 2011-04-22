@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class Mark {
+public class Mark implements GlobalConst{
 
 	public Mark(){}
 	
 	public boolean isDeleted(String filename, int position) throws IOException
 	{
-		File Deletefile = new File("C://tmp//" + filename + "_delete.txt");
+		File Deletefile = new File(DIRPATH + filename + "_delete.txt");
 		RandomAccessFile raF = new RandomAccessFile(Deletefile, "rw");
 		raF.seek(position);
 		int value = raF.read();
@@ -22,7 +22,7 @@ public class Mark {
 	
 	public void setDeleted(String filename, int position) throws IOException
 	{
-		File Deletefile = new File("C://tmp//" + filename + "_delete.txt");
+		File Deletefile = new File(DIRPATH + filename + "_delete.txt");
 		RandomAccessFile raF = new RandomAccessFile(Deletefile, "rw");
 		raF.seek(position);
 		raF.write(49);
@@ -31,7 +31,7 @@ public class Mark {
 	
 	public long getLength(String filename) throws IOException
 	{
-		File Deletefile = new File("C://tmp//" + filename + "_delete.txt");
+		File Deletefile = new File(DIRPATH + filename + "_delete.txt");
 		RandomAccessFile raF = new RandomAccessFile(Deletefile, "rw");
 		return raF.length();
 	}
