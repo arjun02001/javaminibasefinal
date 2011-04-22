@@ -1,6 +1,7 @@
 package deliverables;
 
 import global.AttrType;
+import global.GlobalConst;
 import global.IntValueClass;
 import global.Mark;
 import global.RID;
@@ -21,7 +22,7 @@ import java.util.regex.Pattern;
 import columnar.ColumnarFile;
 import diskmgr.PCounter;
 
-public class RunQueryOnBitMap {
+public class RunQueryOnBitMap implements GlobalConst{
 	public static void queryOnBitMap(String[] args) throws IOException{
 		String columnarDBName=args[0].trim();					//mydb
 		String columnarFileName=args[1].trim();					//columnarfile
@@ -53,7 +54,7 @@ public class RunQueryOnBitMap {
 		int numBuf=Integer.parseInt(args[4].trim());
 		String accessType=args[5].trim();
 		initDB(columnarDBName,numBuf);
-		Scanner s1 = new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
+		Scanner s1 = new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
 		int numColumns = 0;
 		while(s1.hasNextLine())			//count the no. of lines in schema file
 		{
@@ -61,7 +62,7 @@ public class RunQueryOnBitMap {
 			numColumns++;
 		}
 		s1.close();
-		s1 = new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
+		s1 = new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
 		AttrType[] type = new AttrType[numColumns];
 		int j = 0;
 		int strCount = 0;
@@ -83,7 +84,7 @@ public class RunQueryOnBitMap {
 			ColumnarFile cf=new ColumnarFile(columnarFileName,numColumns,type);
 			String btName=columnarFileName+columnName.toLowerCase()+columnValue.trim();
 			
-			Scanner sc_ColsName=new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
+			Scanner sc_ColsName=new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
 			int column=0;
 			while(sc_ColsName.hasNextLine()){
 				String line=sc_ColsName.nextLine();
@@ -142,7 +143,7 @@ public class RunQueryOnBitMap {
 			}
 			sc1.close();
 			String[] colNames=targetColumns.split("\\s");
-			sc_ColsName=new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
+			sc_ColsName=new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
 			String[] colNamesArray=new String[numColumns];
 			boolean[] posSet=new boolean[numColumns];
 			index=0;
@@ -209,7 +210,7 @@ public class RunQueryOnBitMap {
 	}
 	static void initDB(String dbname, int numBuf)
 	{
-		 String dbpath = "c://tmp//" + System.getProperty("user.name") + ".minibase."+dbname;
+		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase."+dbname;
 		 SystemDefs sysdef = new SystemDefs( dbpath, 100000, numBuf, "Clock" );
 	}
 }
