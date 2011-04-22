@@ -32,6 +32,6 @@ public interface GlobalConst {
   public static final int INVALID_PAGE = -1;
   
   //Fixed size for string
-  public static final int STRINGSIZE = 100;
+  public static final int STRINGSIZE = 25;
   public static final String DIRPATH = "/host/";
 }
