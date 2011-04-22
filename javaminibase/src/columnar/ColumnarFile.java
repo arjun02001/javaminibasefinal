@@ -13,6 +13,7 @@ import iterator.RelSpec;
 import iterator.UnknownKeyTypeException;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -55,15 +56,19 @@ public class ColumnarFile implements GlobalConst
 				attrSize[i] = 4; 
 			else attrSize[i] = STRINGSIZE;
 		}	
+	
 		columnFiles = new Heapfile[numColumns];
 		btreeIndexFiles = new BTreeFile[numColumns];
 		heapFileNames = new String[numColumns];
+
+		
 		for(int i = 0; i < numColumns; i++)
 		{
 			btreeIndexFiles[i] = null;
 			heapFileNames[i] = name + "." + i;
 			columnFiles[i] = new Heapfile(heapFileNames[i]);
 		}
+		
 		//TODO: create headerfile
 	}
 	
@@ -311,6 +316,15 @@ public class ColumnarFile implements GlobalConst
 	    colScan.closescan();
 	    return true;
 	}
+	
+	public void createEnvironment(int columnNo) throws InvalidTupleSizeException, GetFileEntryException, ConstructPageException, AddFileEntryException, FieldNumberOutOfBoundException, KeyTooLongException, KeyNotMatchException, LeafInsertRecException, IndexInsertRecException, UnpinPageException, PinPageException, NodeNotMatchException, ConvertException, DeleteRecException, IndexSearchException, IteratorException, LeafDeleteException, InsertException, InvalidTypeException, IOException
+	{
+		this.createBTreeIndex(columnNo);
+	}
+	public void setClock(int columnNo) throws PageUnpinnedException, InvalidFrameNumberException, HashEntryNotFoundException, ReplacerException
+	{
+		this.destroyBTreeIndex(columnNo);
+	}
 
 	public boolean destroyBTreeIndex(Integer columnNo) throws PageUnpinnedException, InvalidFrameNumberException, HashEntryNotFoundException, ReplacerException
 	{
@@ -322,7 +336,7 @@ public class ColumnarFile implements GlobalConst
 	}
 	
 	public boolean createBitMapIndex(int columnNo, ValueClass value) throws Exception{
-		Scanner sc_ColsName=new Scanner(new File(DIRPATH + name + "_schema.txt"));
+		Scanner sc_ColsName=new Scanner(new File("c://tmp//" + name + "_schema.txt"));
 		String colName=null;
 		while(sc_ColsName.hasNextLine()){
 			String line=sc_ColsName.nextLine();
@@ -486,7 +500,7 @@ public class ColumnarFile implements GlobalConst
 	// Getting distict values for the target column
 public boolean distinctValues(int column) throws Exception{
 		
-		Scanner sc_ColsName=new Scanner(new File(DIRPATH + name + "_schema.txt"));
+		Scanner sc_ColsName=new Scanner(new File("c://tmp//" + name + "_schema.txt"));
 		String colName=null;
 		int victimColumnNumber=column;
 		int check=0;
@@ -584,7 +598,7 @@ public boolean distinctValues(int column) throws Exception{
 		}
 		sc1.close();
 		if(check==cnt-1){
-			System.out.println("\n\n\t\tDone With Distinct values for Column Name : "+colName+" in file : "+f);
+			//System.out.println("\n\n\t\tDone With Distinct values for Column Name : "+colName+" in file : "+f);
 			return true;
 		}
 		return false;
@@ -652,11 +666,135 @@ public boolean distinctValues(int column) throws Exception{
 			columnFiles[i] = tempHeapFiles[i];
 			colScan[i].closescan();
 		}
-	    System.out.println("Purge Completed Successfully successfully.\n"); 
-		return true;
+	 	return true;
 	}
 
+	public boolean purgeDeletedTuples() throws HFException, HFDiskMgrException, Exception
+	{
+		/*Deleting marked delete tuples*/
+		Mark delete = new Mark();
+		TID tid = new TID(numColumns);
+		PositionData newPositionData = new PositionData();
+	    RID[] rids = new RID[numColumns];
+	    for (int i=0; i<numColumns; i++)
+	    	rids[i] = new RID();
+	    
+		for (int position = 0; position < this.columnFiles[0].getRecCnt();position++)
+		{
+			if(delete.isDeleted(this.name, position))
+			{
+				newPositionData.position = position;
+				tid = tid.constructTIDfromPosition(newPositionData, this.name, this.numColumns);
+			    rids = tid.getRecordIDs();
+				for (int column = 0; column < numColumns; column++)
+				{
+					if(rids[column] != null)
+					this.columnFiles[column].deleteRecord(rids[column]);
+				}
+			}
+		}
+	    	
+		
+		/*Purge starts*/
+		
+		ArrayList<RID>[] allRID = new ArrayList[numColumns];
+		Tuple[] tempTuple = new Tuple[numColumns];
+		Tuple t = new Tuple();
+		byte[] arr = new byte[STRINGSIZE];
+		for (int i=0; i<numColumns; i++)
+		{
+			allRID[i] = new ArrayList<RID>();
+			allRID[i] = this.columnFiles[i].getallRID();
+			tempTuple[i] = new Tuple();
+		}
+		boolean end = false; 
+		
+		for (int i=0; i<allRID[0].size() && !end ; i++)
+		{
+			for (int j=0; j<numColumns;j++)
+			{
+				tempTuple[j] = this.columnFiles[j].getRecord(allRID[j].get(i));
+				if (allRID[j].get(i) != null)
+				this.columnFiles[j].deleteRecord(allRID[j].get(i));
+				arr = tempTuple[j].getTupleByteArray();
+				this.columnFiles[j].insertRecord(arr);
+			}
+		}
+		
+		return true;
+	}
 	
+	public boolean purgeDelete() throws HFException, HFDiskMgrException, Exception
+	{
+		/*Deleting marked delete tuples*/
+		Mark delete = new Mark();
+		TID tid = new TID(numColumns);
+		PositionData newPositionData = new PositionData();
+	    RID[] rids = new RID[numColumns];
+	    for (int i=0; i<numColumns; i++)
+	    	rids[i] = new RID();
+	  
+	    int count =0, recCount = this.columnFiles[0].getRecCnt(); boolean flag = false;
+		System.out.println("Record Count Before: "+this.columnFiles[0].getRecCnt());
+		for (int position = this.columnFiles[0].getRecCnt(); position > 10 ;position--)
+		{
+			if(delete.isDeleted(this.name, position))
+			{
+				System.out.println("position :" + position);
+				newPositionData.position = position;
+				tid = tid.constructTIDfromPosition(newPositionData, this.name, this.numColumns);
+			    rids = tid.getRecordIDs();
+			    for (int column = 0; column < numColumns; column++)
+				{
+			    	if(rids[column] != null)
+					{	
+						flag = true;
+			    		System.out.println(rids[column].pageNo.pid + " " + rids[column].slotNo);
+						this.columnFiles[column].deleteRecord(rids[column]);
+					}
+						}
+			    if(flag)
+			    {
+			    	count++;
+			    	flag = false;
+			    }
+			}
+		}
+		
+	    for (int column = 0; column < numColumns; column++)
+		{
+	    	this.columnFiles[column].compact();
+		}
+	    
+	    System.out.println("Total Number of records deleted: " + count);
+		System.out.println("Latest Record Count: " + this.columnFiles[0].getRecCnt());
+			
+	/*	for (int position = this.columnFiles[0].getRecCnt(); position;position--)
+		{
+			if(delete.isDeleted(this.name, position))
+			{
+				newPositionData.position = position;
+				tid = tid.constructTIDfromPosition(newPositionData, this.name, this.numColumns);
+			    rids = tid.getRecordIDs();
+				for (int column = 0; column < numColumns; column++)
+				{
+					if(rids[column] != null)
+					this.columnFiles[column].deleteRecord(rids[column]);
+				}
+			}
+		}
+		
+	*/  
+	    System.out.println("purge completed");
+		File Deletefile = new File("C://tmp//" + this.name + "_delete.txt");
+		RandomAccessFile raF = new RandomAccessFile(Deletefile, "rw");
+		raF.seek(0);
+		for (int i=0; i < 2*(recCount+1); i++)
+			raF.write(48);
+		raF.close();
+
+		return true;
+	}
 	
 	public boolean markTupleDeleted(TID tid, ColumnarFile cf) throws InvalidSlotNumberException, InvalidTupleSizeException, HFException, HFBufMgrException, HFDiskMgrException, Exception{
 
