@@ -1,7 +1,13 @@
 package deliverables;
 
-
-import global.*;
+import global.AttrType;
+import global.IntValueClass;
+import global.Mark;
+import global.RID;
+import global.StringValueClass;
+import global.SystemDefs;
+import global.TID;
+import global.ValueClass;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,12 +18,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.naming.directory.DirContext;
-
 import columnar.ColumnarFile;
 import diskmgr.PCounter;
 
-public class RunQueryOnBitMap implements GlobalConst {
+public class RunQueryOnBitMap {
 	public static void queryOnBitMap(String[] args) throws IOException{
 		String columnarDBName=args[0].trim();					//mydb
 		String columnarFileName=args[1].trim();					//columnarfile
@@ -49,7 +53,7 @@ public class RunQueryOnBitMap implements GlobalConst {
 		int numBuf=Integer.parseInt(args[4].trim());
 		String accessType=args[5].trim();
 		initDB(columnarDBName,numBuf);
-		Scanner s1 = new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
+		Scanner s1 = new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
 		int numColumns = 0;
 		while(s1.hasNextLine())			//count the no. of lines in schema file
 		{
@@ -57,7 +61,7 @@ public class RunQueryOnBitMap implements GlobalConst {
 			numColumns++;
 		}
 		s1.close();
-		s1 = new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
+		s1 = new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
 		AttrType[] type = new AttrType[numColumns];
 		int j = 0;
 		int strCount = 0;
@@ -79,7 +83,7 @@ public class RunQueryOnBitMap implements GlobalConst {
 			ColumnarFile cf=new ColumnarFile(columnarFileName,numColumns,type);
 			String btName=columnarFileName+columnName.toLowerCase()+columnValue.trim();
 			
-			Scanner sc_ColsName=new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
+			Scanner sc_ColsName=new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
 			int column=0;
 			while(sc_ColsName.hasNextLine()){
 				String line=sc_ColsName.nextLine();
@@ -127,19 +131,18 @@ public class RunQueryOnBitMap implements GlobalConst {
 			while(sc1.hasNextLine()){
 				String line=sc1.nextLine();
 				line=line.trim();
-				/*Pattern pattern=Pattern.compile(columnarFileName+"tuple_count:[\\d]+");
+				Pattern pattern=Pattern.compile(columnarFileName+"tuple_count:[\\d]+");
 				Matcher matcher=pattern.matcher(line);
 				while(matcher.find()){
 					String k=matcher.group();
 					k=k.trim();
 					String[] ar=k.split(":");
 					cnt=Integer.parseInt(ar[1]);
-				}*/
-				cnt = Integer.parseInt(line.split(": ")[1]);
+				}
 			}
 			sc1.close();
 			String[] colNames=targetColumns.split("\\s");
-			sc_ColsName=new Scanner(new File(DIRPATH + columnarFileName + "_schema.txt"));
+			sc_ColsName=new Scanner(new File("c://tmp//" + columnarFileName + "_schema.txt"));
 			String[] colNamesArray=new String[numColumns];
 			boolean[] posSet=new boolean[numColumns];
 			index=0;
@@ -167,21 +170,29 @@ public class RunQueryOnBitMap implements GlobalConst {
 			System.out.println("\n\n");
 			RID[] rids=null;
 			pos=bSet.nextSetBit(pos);
-			
-			int count = 0;
+			Mark delete = new Mark();
+		    boolean flag = false;
+			int count = 0, temp_pos = pos;
 			while(pos<=cnt-1&&pos>=0){
 				pos++;
 				TID tid = cf.getTIDFromPos(pos);
+				temp_pos = pos;
 				pos=bSet.nextSetBit(pos);
 				rids=tid.getRecordIDs();
 				for(int i=0;i<rids.length;i++){
 					if(posSet[i]){
-						System.out.print(cf.getValue(tid, i+1)+" ");
-						
+						if(!delete.isDeleted(columnarFileName, temp_pos))
+						{
+							System.out.print(cf.getValue(tid, i+1)+" ");
+							flag = true;
+						}
 					}
+				}System.out.println();
+				if (flag)
+				{
+					count++;
+					flag = false;
 				}
-				System.out.println();
-				count++;
 			}
 			
 			System.out.println("Total tuples: " + count);
@@ -198,7 +209,7 @@ public class RunQueryOnBitMap implements GlobalConst {
 	}
 	static void initDB(String dbname, int numBuf)
 	{
-		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase."+dbname;
+		 String dbpath = "c://tmp//" + System.getProperty("user.name") + ".minibase."+dbname;
 		 SystemDefs sysdef = new SystemDefs( dbpath, 100000, numBuf, "Clock" );
 	}
 }
