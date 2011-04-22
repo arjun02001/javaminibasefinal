@@ -30,7 +30,7 @@ public class ColumnarFileScan extends  Iterator
   public FldSpec[] perm_mat;
   public FileScan[] columnarFileScans;
 
- 
+  public int position_counter;
 
   /**
    *constructor
@@ -65,7 +65,7 @@ public class ColumnarFileScan extends  Iterator
       _in1 = in1; 
       in1_len = len_in1;
       s_sizes = s1_sizes;
-      
+      position_counter = 0;
       Jtuple =  new Tuple();
       AttrType[] Jtypes = new AttrType[n_out_flds];
       short[]    ts_size;
@@ -154,8 +154,11 @@ public class ColumnarFileScan extends  Iterator
       
       while(true) {
 	if((tuple1 =  scan.getNext(tid)) == null) {
-	  return null;
+		return null;
 	}
+	else
+		position_counter++;
+	
 	
 	tuple1.setHdr(in1_len, _in1, s_sizes);
 	if (PredEval.Eval(OutputFilter, tuple1, null, _in1, null) == true){
