@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 import columnar.ColumnarFile;
 import columnar.TupleScan;
+import deliverables.RunQueryOnBitMap;
 import diskmgr.PCounter;
 
 import bufmgr.PageNotReadException;
@@ -41,6 +42,7 @@ import iterator.UnknowAttrType;
 import iterator.UnknownKeyTypeException;
 import iterator.WrongPermat;
 import global.*;
+import deliverables.RunQueryOnBitMap;
 
 public class Query implements GlobalConst {
 
@@ -56,7 +58,6 @@ public class Query implements GlobalConst {
 	 */
 	public static void main(String[] args) throws IndexException, SortException, LowMemException, UnknownKeyTypeException, Exception 
 	{
-		ColumnarFile cf=null;
 		String dbname = args[0];
 		columnFile = args[1];
 		String targetColumnNames = args[2];
@@ -68,11 +69,13 @@ public class Query implements GlobalConst {
 		String operator = valueConstraint.split(" ")[1];
 		String value = valueConstraint.split(" ")[2];
 		
-		victimColumnNumber = getVictimColumnNumber(victimColumnName); // column on which we want to query
+		
+	   victimColumnNumber = getVictimColumnNumber(victimColumnName); // column on which we want to query
 		
 		initDB(dbname, Integer.parseInt(numBuf));
-		
+
 		Scanner s1 = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
+
 		int numColumns = 0;
 		while(s1.hasNextLine())	//count the no. of lines in schema file
 		{
@@ -81,7 +84,9 @@ public class Query implements GlobalConst {
 		}
 		s1.close();
 		
+
 		Scanner s2 = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
+
 		AttrType[] type = new AttrType[numColumns];
 		
 		int j = 0;
@@ -108,74 +113,7 @@ public class Query implements GlobalConst {
 		{
 			Sprojection[i] = new FldSpec(new RelSpec(RelSpec.outer), (i + 1));
 		}
-	      
-	    
-	    if(accessType.toLowerCase().equals("filescan"))
-	    {
-	    	
-	    	CondExpr[] expr1 = new CondExpr[2];
-			expr1[0] = new CondExpr();
-			expr1[0].op = new AttrOperator(returnOp(operator));
-			expr1[0].next  = null;
-		    expr1[0].type1 = new AttrType(AttrType.attrSymbol); 
-		    expr1[0].type2 = new AttrType(type[victimColumnNumber - 1].attrType);
-		    expr1[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),victimColumnNumber);
-		    if(expr1[0].type2.attrType == AttrType.attrString)
-		    {
-		    	expr1[0].operand2.string = value;
-		    }
-		    else if (expr1[0].type2.attrType == AttrType.attrInteger)
-		    {
-		    	expr1[0].operand2.integer = Integer.parseInt(value);
-		    }
-		    expr1[1] = null;
-		    ColumnarFileScan cs = new ColumnarFileScan(columnFile, type, strSizes ,(short) type.length, (short)Sprojection.length,Sprojection, expr1);
-		    Tuple newT = new Tuple();
-		    newT = null;int i=0;
-		    while((newT=cs.get_next())!=null)
-		    {	
-	    	    printProjectionData(newT, targetColumnNames, type);
-	    	    i++;
-		    }
-		    System.out.println("Number of records displayes is: " + i);
-	    }
-	    
-	    if(accessType.toLowerCase().equals("columnscan"))
-	    {
-	    	CondExpr[] expr2 = new CondExpr[2];
-	    	expr2[0] = new CondExpr();
-	    	expr2[0].op = new AttrOperator(returnOp(operator));
-	    	expr2[0].next  = null;
-	    	expr2[0].type1 = new AttrType(AttrType.attrSymbol);
-	    	expr2[0].type2 = new AttrType(type[victimColumnNumber - 1].attrType);
-	    	expr2[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),1);
-	    	if(expr2[0].type2.attrType == AttrType.attrString)
-		    {
-		    	expr2[0].operand2.string = value;
-		    }
-		    else if (expr2[0].type2.attrType == AttrType.attrInteger)
-		    {
-		    	expr2[0].operand2.integer = Integer.parseInt(value);
-		    }
-	    	expr2[1] = null;
-	    	
-	    	
-	    	FileScanByColnPos fscp = new FileScanByColnPos(columnFile, type, strSizes, (short)type.length, (short)Sprojection.length, Sprojection, expr2, victimColumnNumber);
-	    	PositionData newPD = new PositionData();
-	    	newPD = null;int i=0;
-	    	while((newPD=fscp.get_next_PositionData())!=null)
-	    	{
-	    		TID tid = new TID(type.length);
-	    		tid = tid.constructTIDfromPosition(newPD, columnFile, type.length);
-	    		cf = new ColumnarFile(columnFile, type.length, type);
-	    		Tuple t = new Tuple();
-	    		t = cf.getTuple(tid);
-	    		printProjectionData(t, targetColumnNames, type);
-	    		i++;
-	    	}
-	    	  System.out.println("Number of records displayed is: " + i);
-	    }
-	    
+	    		
 	    if(accessType.toLowerCase().equals("btree"))
 	    {
 	                CondExpr[] expr = new CondExpr[2];
@@ -194,25 +132,127 @@ public class Query implements GlobalConst {
 	    		    	expr[0].operand2.integer = Integer.parseInt(value);
 	    		    }
 	                expr[1] = null;
-	               
-	                cf = new ColumnarFile(columnFile, numColumns, type);
 	                
-	                cf.createBTreeIndex(victimColumnNumber);
-	                            
-	                System.out.println("Finished B-Tree Indexing");
+	                System.out.println(columnFile +" "+ numColumns);
+	    			
+	    			ColumnarFile newcf = new ColumnarFile(columnFile, numColumns, type);
+	    	    	newcf.createBTreeIndex(victimColumnNumber);
+	    			ColumnIndexScan dummy = new ColumnIndexScan();																																				
+	    			dummy.checkIndex(newcf, victimColumnNumber, null);
+	    			newcf.btreeIndexFiles[victimColumnNumber-1].destroyFile();
+	                        
+	                //projectBTreeIndex(cf, victimColumnNumber, expr, targetColumnNames, type);
+	    	    	System.out.println("B-Tree Scan Completed");
+           	System.out.println("Read count: " + PCounter.rcounter);
+       		System.out.println("Write count: " + PCounter.wcounter);
 	                
-	    		    projectBTreeIndex(cf, victimColumnNumber, expr, targetColumnNames, type);
 	      }
-	    	    
-	    	    	    
-	    if(accessType.toLowerCase().equals("bitmap"))
+
+		
+	    if(accessType.toLowerCase().equals("filescan"))
 	    {
-	    	throw new Exception("Please use bitmap query from RunQueryBMap.java of tests package");
 	    	
-	    }
-	    
+	    	CondExpr[] expr1 = new CondExpr[2];
+	    	Mark delete = new Mark();
+		    expr1[0] = new CondExpr();
+			expr1[0].op = new AttrOperator(returnOp(operator));
+			expr1[0].next  = null;
+		    expr1[0].type1 = new AttrType(AttrType.attrSymbol); 
+		    expr1[0].type2 = new AttrType(type[victimColumnNumber - 1].attrType);
+		    expr1[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),victimColumnNumber);
+		    if(expr1[0].type2.attrType == AttrType.attrString)
+		    {
+		    	expr1[0].operand2.string = value;
+		    }
+		    else if (expr1[0].type2.attrType == AttrType.attrInteger)
+		    {
+		    	expr1[0].operand2.integer = Integer.parseInt(value);
+		    }
+		    expr1[1] = null;
+		    PCounter.rcounter = PCounter.wcounter = 0;
+		    ColumnarFileScan cs = new ColumnarFileScan(columnFile, type, strSizes ,(short) type.length, (short)Sprojection.length,Sprojection, expr1);
+		    int i=0, position = 0;
+		    Tuple newT = new Tuple();
+		    while((newT=cs.get_next())!=null)
+		    {	
+		    	if (!delete.isDeleted(columnFile, cs.position_counter))
+		    	{
+		    		System.out.print(columnFile + " " + cs.position_counter + ": ");
+		    		printProjectionData(newT, targetColumnNames, type);
+		    		i++;
+		    	}
+		    }System.out.println("Number of records displayes is: " + i);
+		
 		System.out.println("Read count: " + PCounter.rcounter);
 		System.out.println("Write count: " + PCounter.wcounter);
+		
+	    }
+	    
+	    if(accessType.toLowerCase().equals("columnscan"))
+	    {
+	    	CondExpr[] expr2 = new CondExpr[2];
+	    	Mark delete = new Mark();
+		    expr2[0] = new CondExpr();
+	    	expr2[0].op = new AttrOperator(returnOp(operator));
+	    	expr2[0].next  = null;
+	    	expr2[0].type1 = new AttrType(AttrType.attrSymbol);
+	    	expr2[0].type2 = new AttrType(type[victimColumnNumber - 1].attrType);
+	    	expr2[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),1);
+	    	if(expr2[0].type2.attrType == AttrType.attrString)
+		    {
+		    	expr2[0].operand2.string = value;
+		    }
+		    else if (expr2[0].type2.attrType == AttrType.attrInteger)
+		    {
+		    	expr2[0].operand2.integer = Integer.parseInt(value);
+		    }
+	    	expr2[1] = null;
+	    	
+	    	PCounter.rcounter = PCounter.wcounter = 0;
+		    FileScanByColnPos fscp = new FileScanByColnPos(columnFile, type, strSizes, (short)type.length, (short)Sprojection.length, Sprojection, expr2, victimColumnNumber);
+	    	PositionData newPD = new PositionData();
+	    	newPD = null;int i=0;
+	    	while((newPD=fscp.get_next_PositionData())!=null)
+	    	{
+	    		if(!delete.isDeleted(columnFile, newPD.position))
+		    	{
+	    			System.out.print(newPD.position + ": ");
+	    			TID tid = new TID(type.length);
+	    			tid = tid.constructTIDfromPosition(newPD, columnFile, type.length);
+	    			ColumnarFile cf = new ColumnarFile(columnFile, type.length, type);
+	    			Tuple t = new Tuple();
+	    			t = cf.getTuple(tid);
+	    			printProjectionData(t, targetColumnNames, type);
+	    			i++;
+	    		}
+	    	} System.out.println("Number of records displayed is: " + i);
+    	System.out.println("Read count: " + PCounter.rcounter);
+		System.out.println("Write count: " + PCounter.wcounter);
+		}
+	    
+	    if(accessType.toLowerCase().equals("bitmap"))
+	    {
+				String[] arr = new String[6];
+				
+				arr[0] = args[0];
+				arr[1] = args[1];
+				arr[2] = args[2];
+				arr[3] = args[3];
+				arr[4] = args[4];
+				arr[5] = args[5];
+			
+				PCounter.rcounter = PCounter.wcounter = 0;
+			    	
+				try {
+				RunQueryOnBitMap.queryOnBitMap(arr);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.out.println("Read count: " + PCounter.rcounter);
+				System.out.println("Write count: " + PCounter.wcounter);
+	    }
+	    
 	}
 	
 	public static boolean projectBTreeIndex(ColumnarFile cf, int columnNo, CondExpr selects[], String targetColumnNames, AttrType[] type) throws HFException, HFDiskMgrException, HFBufMgrException, Exception
@@ -231,8 +271,8 @@ public class Query implements GlobalConst {
 		    
 		    // start index scan
 		    ColumnIndexScan iscan = null;
-	        
-		    iscan = new ColumnIndexScan(new IndexType(IndexType.B_Index), cf.heapFileNames[columnNo-1], cf.name + "_Btree." + (columnNo-1), tempTypes, strSizes, 1, 1, projlist, selects, 1, true);
+		    PCounter.rcounter = PCounter.wcounter = 0;
+		    iscan = new ColumnIndexScan(new IndexType(IndexType.B_Index), cf.heapFileNames[columnNo-1], cf.name + "122_Btree." + (columnNo-1), tempTypes, strSizes, 1, 1, projlist, selects, 1, true);
 		    
 	        Tuple t = new Tuple();
 			RID rid = new RID();
@@ -240,24 +280,33 @@ public class Query implements GlobalConst {
 		    Integer outIntVal = null;
 		    Integer position = null;
 		    PositionData newPositionData = new PositionData();
-			
+		    																														
+		    
 		    //rid = iscan.get_next_rid();
 		    int i = 0;
+		    Mark delete = new Mark();
 		    while ((rid = iscan.get_next_rid()) != null) 
 		    {    	
 		    	position = cf.columnFiles[columnNo-1].getPositionForRID(rid);
-		    	newPositionData.position = position;
-		    	TID tid = new TID(cf.numColumns);
-		    	tid = new TID(cf.numColumns);
-			    tid = tid.constructTIDfromPosition(newPositionData, cf.name, cf.numColumns);
-			    t = cf.getTuple(tid);
-			    printProjectionData(t,targetColumnNames, type);
-			    ++i;
-				
+
+		    	if(!delete.isDeleted(cf.name, position))
+		    	{
+		    		System.out.print(position + ": ");
+		    		newPositionData.position = position;
+		    	
+			    	TID tid = new TID(cf.numColumns);
+			    	tid = new TID(cf.numColumns);
+				    tid = tid.constructTIDfromPosition(newPositionData, cf.name, cf.numColumns);
+				    t = cf.getTuple(tid);
+				    //System.out.println("*************** Is Delete: " + position);
+				    printProjectionData(t,targetColumnNames, type);
+				    ++i;
+		    	}//rid = iscan.get_next_rid();
+
 		    }
 		    System.out.println("Number of records displayed is: " + i);
 		    iscan.close();
-		    System.out.println("BTreeIndex Scan Completed.\n");
+		    System.out.println("BTreeIndex Scan Completed");
 		    return true;
 	}
 	
@@ -286,7 +335,9 @@ public class Query implements GlobalConst {
 
 	private static int getVictimColumnNumber(String victimColumnName) throws FileNotFoundException 
 	{
+
 		Scanner s = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
+
 		while(s.hasNext())
 		{
 			String[] colsInSchema = s.nextLine().split("\t");
@@ -322,7 +373,9 @@ public class Query implements GlobalConst {
 	
 	static void initDB(String dbname, int numBuf)
 	{
+
 		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase."+dbname;
+
 		 SystemDefs sysdef = new SystemDefs( dbpath, 1000, numBuf, "Clock" );
 	}
 	
