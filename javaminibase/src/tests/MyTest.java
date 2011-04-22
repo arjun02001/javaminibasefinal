@@ -21,17 +21,24 @@ public class MyTest implements GlobalConst
 {
 	public static void main(String[] args) throws Exception
 	{
+
+		
+		
 		initDB();
 		Employee emp1, emp2, emp3;
 		emp1 = new Employee(1, "arjun");
 		emp2 = new Employee(2, "anwasha");
 		short numColumns = 2;
-		 
+			 
 		AttrType[] type = new AttrType[numColumns];
 		type[0] = new AttrType(AttrType.attrInteger);
 		type[1] = new AttrType(AttrType.attrString);
 		
-		ColumnarFile cf = new ColumnarFile("myfile", numColumns, type);
+		
+		
+	    System.out.println("**********************");
+		ColumnarFile cf = new ColumnarFile("MyTest", numColumns, type);
+		System.out.println("**********************");
 		
 		short[] strSizes = new short[1];
 		strSizes[0] = STRINGSIZE;
@@ -91,7 +98,7 @@ public class MyTest implements GlobalConst
 		
 		returnTuples[0].print(type);
 		returnTuples[1].print(type);
-		System.out.println("Finished printing data");
+		System.out.println("Finished printi-ng data");
 		
 
 	    CondExpr[] expr = new CondExpr[2];
@@ -106,14 +113,14 @@ public class MyTest implements GlobalConst
 	    
 	    cf.createBTreeIndex(2);
 	    ColumnIndexScan dummy = new ColumnIndexScan();
-	    dummy.scanBTreeIndex(cf, 2, expr);
+	    dummy.checkIndex(cf, 2, expr);
 	    
 	    dummy.deleteTuple(cf, 2, expr);
 	
 	    cf.purgeAllDeletedTuples();
 	    
 	    cf.createBTreeIndex(2);
-	    dummy.scanBTreeIndex(cf, 2, null);
+	    dummy.checkIndex(cf, 2, null);
 	    
 	    System.out.println("Finished Deleting Data");
 	}
