@@ -163,33 +163,35 @@ public class NestedLoopsJoins  extends Iterator
 	  //join is done too.
 	  
 	  if (get_from_outer == true)
-	    {
+	  {
 	      get_from_outer = false;
 	      if (inner != null)     // If this not the first time,
-		{
+	      {
 		  // close scan
 		  inner = null;
-		}
-	    
-	      try {
-		inner = hf.openScan();
 	      }
-	      catch(Exception e){
-		throw new NestedLoopException(e, "openScan failed");
+	    
+	      try 
+	      {
+	    	  inner = hf.openScan();
+	      }
+	      catch(Exception e)
+	      {
+	    	  throw new NestedLoopException(e, "openScan failed");
 	      }
 	      
 	      if ((outer_tuple=outer.get_next()) == null)
-		{
-		  done = true;
-		  if (inner != null) 
-		    {
+	      {
+	    	  done = true;
+	    	  if (inner != null) 
+	    	  {
                       
-		      inner = null;
-		    }
+	    		  inner = null;
+	    	  }
 		  
-		  return null;
-		}   
-	    }  // ENDS: if (get_from_outer == TRUE)
+	    	  return null;
+	      }   
+	  }  // ENDS: if (get_from_outer == TRUE)
 	 
 	  
 	  // The next step is to get a tuple from the inner,
@@ -202,16 +204,16 @@ public class NestedLoopsJoins  extends Iterator
 		{
 		  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
 		  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
-		    {
+		  {
 		      if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
-			{
+		      {
 			  // Apply a projection on the outer and inner tuples.
-			  Projection.Join(outer_tuple, _in1, 
+		    	  Projection.Join(outer_tuple, _in1, 
 					  inner_tuple, _in2, 
 					  Jtuple, perm_mat, nOutFlds);
-			  return Jtuple;
-			}
-		    }
+		    	  return Jtuple;
+		      }
+		   }
 		}
 	      
 	      // There has been no match. (otherwise, we would have 
