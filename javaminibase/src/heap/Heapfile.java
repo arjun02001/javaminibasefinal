@@ -47,6 +47,9 @@ public class Heapfile implements Filetype,  GlobalConst {
   
   
   PageId      _firstDirPageId;   // page number of header page
+  PageId	  _currentDataPageId;
+  PageId	  _currentDirPageId;
+  
   int         _ftype;
   private     boolean     _file_deleted;
   private     String 	 _fileName;
@@ -209,7 +212,7 @@ public class Heapfile implements Filetype,  GlobalConst {
   
   /** Initialize.  A null name produces a temporary heapfile which will be
    * deleted by the destructor.  If the name already denotes a file, the
-   * file is opened; otherwise, a new empty file is created.
+   * `file is opened; otherwise, a new empty file is created.
    *
    * @exception HFException heapfile exception
    * @exception HFBufMgrException exception thrown from bufmgr layer
@@ -227,6 +230,7 @@ public class Heapfile implements Filetype,  GlobalConst {
       _file_deleted = true;
       _fileName = null;
       
+		
       if(name == null) 
 	{
 	  // If the name is NULL, allocate a temporary name
@@ -260,14 +264,21 @@ public class Heapfile implements Filetype,  GlobalConst {
       
       Page apage = new Page();
       _firstDirPageId = null;
-      if (_ftype == ORDINARY)
-	_firstDirPageId = get_file_entry(_fileName);
+      _currentDirPageId = null;
+      _currentDataPageId = null;
       
+      if (_ftype == ORDINARY)
+      {
+    	  _firstDirPageId = get_file_entry(_fileName);
+          _currentDirPageId = _firstDirPageId;
+
+      }
       if(_firstDirPageId==null)
 	{
 	  // file doesn't exist. First create it.
 	  _firstDirPageId = newPage(apage, 1);
-	  // check error
+     _currentDirPageId = _firstDirPageId;
+ // check error
 	  if(_firstDirPageId == null)
 	    throw new HFException(null, "can't new page");
 	  
@@ -468,6 +479,7 @@ public class Heapfile implements Filetype,  GlobalConst {
 		  
 		  byte [] tmpData = atuple.getTupleByteArray();
 		  currentDataPageRid = currentDirPage.insertRecord(tmpData);
+		  _currentDirPageId = currentDirPageId;
 		  
 		  RID tmprid = currentDirPage.firstRecord();
 		  
@@ -583,6 +595,8 @@ public class Heapfile implements Filetype,  GlobalConst {
       
       RID rid;
       rid = currentDataPage.insertRecord(recPtr);
+      _currentDirPageId = currentDirPageId;
+		 
       
       dpinfo.recct++;
       dpinfo.availspace = currentDataPage.available_space();
@@ -1222,5 +1236,44 @@ public class Heapfile implements Filetype,  GlobalConst {
     System.out.println(allRIDs.size());
     return allRIDs;
   }  
-
+  
+  public boolean compact() throws IOException, HFBufMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFDiskMgrException
+  {
+	  int counter = 0;
+	  
+	  PageId currentDirPageId = new PageId(_firstDirPageId.pid);
+      HFPage currentDirPage = new HFPage();
+      PageId nextDirPageId = new PageId();
+      
+      HFPage currentDataPage = new HFPage();
+      RID currentDataPageRid = new RID();
+      RID currentDirPageRid = new RID();
+          
+      Tuple atuple = new Tuple();
+      
+      while (currentDirPageId.pid != INVALID_PAGE)
+  	  {
+		  pinPage(currentDirPageId, currentDirPage, false/*Rdisk*/);
+  	  
+	  	  for( currentDirPageRid = currentDirPage.firstRecord();
+	  	       currentDirPageRid != null;
+	  	       currentDirPageRid = currentDirPage.nextRecord(currentDirPageRid))
+	  	    {
+	  		
+	  			atuple = currentDirPage.getRecord(currentDirPageRid);
+	  		    DataPageInfo dpinfo = new DataPageInfo(atuple);
+	  		    pinPage(dpinfo.pageId, currentDataPage, false/*Rddisk*/);// I retreive the currentDataPage here
+	  		    currentDataPage.compact_slot_dir();
+	  		    unpinPage(dpinfo.pageId, false /*undirty*/);	 
+	  	    }
+	  	  
+	  	  currentDirPage.compact_slot_dir();
+	  	  nextDirPageId = currentDirPage.getNextPage();
+		  unpinPage(currentDirPageId, false /*undirty*/);
+		  currentDirPageId.pid = nextDirPageId.pid;
+	  	}
+      
+        return true;
+  }  
+  
 }// End of HeapFile 
