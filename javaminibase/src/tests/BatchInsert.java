@@ -113,7 +113,7 @@ public class BatchInsert implements GlobalConst
 			PrintWriter pw_cnt=new PrintWriter(cnt_file);
 		
 			
-			File Deletefile = new File("C://tmp//" + columnarFileName + "_delete.txt");
+			File Deletefile = new File(DIRPATH + columnarFileName + "_delete.txt");
 			RandomAccessFile raF = new RandomAccessFile(Deletefile, "rw");
 			raF.seek(0);
 			for (int i=0; i < 2*(numTuplesInserted+1); i++)
