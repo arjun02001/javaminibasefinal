@@ -11,6 +11,8 @@ public class StringKey extends KeyClass {
      return key;
   }
 
+  public StringKey() {}
+
   /** Class constructor
    *  @param     s   the value of the string key to be set 
    */
