@@ -1,5 +1,5 @@
 # modify the paths appropriately
-JDKPATH = /usr/lib/jvm/java-6-sun-1.6.0.22
+JDKPATH = /usr/lib/jvm/java-6-sun-1.6.0.24
 LIBPATH = .:..
 CLASSPATH = $(LIBPATH)
 BINPATH = $(JDKPATH)/bin
