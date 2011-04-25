@@ -113,10 +113,13 @@ public class ColumnarNestedLoopJoinTest implements GlobalConst
     	      Runtime.getRuntime().exit(1);
     	}
     	Tuple t = new Tuple();
+    	int count = 0;
     	while((t = nlj.get_next()) != null)
     	{
     		t.print(c1Type);
+    		count++;
     	}
+    	System.out.println("Total records: " + count);
     	    
     	System.out.println("Read count: " + PCounter.rcounter);
     	System.out.println("Write count: " + PCounter.wcounter);
