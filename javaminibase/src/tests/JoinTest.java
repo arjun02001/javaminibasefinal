@@ -1691,7 +1691,7 @@ public class JoinTest
     boolean sortstatus;
     //SystemDefs global = new SystemDefs("bingjiedb", 100, 70, null);
     //JavabaseDB.openDB("/tmp/nwangdb", 5000);
-    System.out.println("yes yes");
+   
     JoinsDriver1 jjoin = new JoinsDriver1();
 
     sortstatus = jjoin.runTests();
