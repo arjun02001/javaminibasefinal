@@ -84,7 +84,6 @@ public class ColumnarNestedLoopJoinTest implements GlobalConst
    	    	       new FldSpec(new RelSpec(RelSpec.outer), 3),
    	    	       new FldSpec(new RelSpec(RelSpec.outer), 4),
    	    	    }; 
-   	    	    //projection for inner to be added here
 
    	   iterator.Iterator am = null;
    	       	       	  
