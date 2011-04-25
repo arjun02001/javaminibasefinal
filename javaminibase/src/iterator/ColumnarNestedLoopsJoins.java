@@ -130,8 +130,8 @@ public class ColumnarNestedLoopsJoins extends Iterator
 		    
 		      try 
 		      {
-		    	  //inner = hf.openScan();
-		    	  cf.openTupleScan();
+		    	  inner = cf.openTupleScan();
+		    	  //cf.openTupleScan();
 		      }
 		      catch(Exception e)
 		      {
