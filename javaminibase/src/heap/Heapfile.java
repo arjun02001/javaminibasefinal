@@ -984,7 +984,7 @@ public class Heapfile implements Filetype,  GlobalConst {
   private void flushBuffer() throws HashOperationException, PageUnpinnedException, PagePinnedException, PageNotFoundException, BufMgrException, IOException
   {
 	  SystemDefs.JavabaseBM.flushAllPages();
-  }
+ }
 
   /**
    * short cut to access the unpinPage function in bufmgr package.
