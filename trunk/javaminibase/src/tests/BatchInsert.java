@@ -163,7 +163,7 @@ public class BatchInsert implements GlobalConst
 	
 	static void initDB(String columnDBName)
 	{
-
+		 SystemDefs.BATCH_INSERT_FLAG = true;
 		 String dbpath = DIRPATH + System.getProperty("user.name") + ".minibase." + columnDBName;
 
 		 File f = new File(dbpath);
