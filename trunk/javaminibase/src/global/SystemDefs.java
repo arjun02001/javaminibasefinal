@@ -14,6 +14,7 @@ public class SystemDefs {
   //public static boolean MINIBASE_RESTART_FLAG = false;
   public static boolean MINIBASE_RESTART_FLAG = true;
   public static String	MINIBASE_DBNAME;
+  public static boolean BATCH_INSERT_FLAG = false;
   
   public SystemDefs (){};
   
