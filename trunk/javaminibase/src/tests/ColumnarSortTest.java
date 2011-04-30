@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import columnar.ColumnarFile;
+import diskmgr.PCounter;
 import global.AttrType;
 import global.GlobalConst;
 import global.RID;
@@ -91,6 +92,8 @@ public class ColumnarSortTest implements GlobalConst
 		{
 		      e.printStackTrace();
 		}
+		System.out.println("Read count: " + PCounter.rcounter);
+		System.out.println("Write count: " + PCounter.wcounter);
 	}
 	
 	static void initDB(String columnDBName)
