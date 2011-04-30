@@ -1,7 +1,11 @@
 package tests;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Scanner;
 
 import columnar.ColumnarFile;
 import diskmgr.PCounter;
@@ -22,38 +26,73 @@ import global.*;
 
 public class ColumnarSortTest implements GlobalConst 
 {
+	static String columnFile;
+	static int victimColumnNumber;
 	public static void main(String[] args) throws Exception 
 	{			
-		initDB("mydb");	 
+		String dbname = args[0];
+		columnFile = args[1];
+		String victimColumnName = args[2];
+		String sortOrder = args[3];
+		
+		initDB(dbname);	 
 		int SORTPGNUM = 12;
 		
-	    AttrType[] attrType = new AttrType[4];
-	    attrType[0] = new AttrType(AttrType.attrString);
-	    attrType[1] = new AttrType(AttrType.attrString);
-	    attrType[2] = new AttrType(AttrType.attrInteger);
-	    attrType[3] = new AttrType(AttrType.attrInteger);
+		victimColumnNumber = getVictimColumnNumber(victimColumnName);
+		
+		Scanner s1 = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
+		int numColumns = 0;
+		while(s1.hasNextLine())	//count the no. of lines in schema file
+		{
+			s1.nextLine();
+			numColumns++;
+		}
+		s1.close();
+		
+		Scanner s2 = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
+		AttrType[] type = new AttrType[numColumns];
+		
+		int j = 0;
+		int strCount = 0;
+		while(s2.hasNextLine())	//construct the type[]
+		{
+			String dataType = s2.nextLine().split("\t")[2].toLowerCase();
+			if(dataType.equals("int"))
+			{
+				type[j++] = new AttrType(AttrType.attrInteger);
+			}
+			if(dataType.equals("char"))
+			{
+				type[j++] = new AttrType(AttrType.attrString);
+				strCount++;
+			}
+		}
+		
+		short[] strSizes = new short[strCount];
+		Arrays.fill(strSizes, (short)STRINGSIZE);
+		
+		FldSpec [] Sprojection = new FldSpec[numColumns];	//create the projection array
+		for(int i = 0; i < numColumns; i++)
+		{
+			Sprojection[i] = new FldSpec(new RelSpec(RelSpec.outer), (i + 1));
+		}
+			    
+		TupleOrder[] order = new TupleOrder[1];
+		if(sortOrder.toLowerCase().contains("asc"))
+		{
+			order[0] = new TupleOrder(TupleOrder.Ascending);
+		}
+		else
+		{
+			order[0] = new TupleOrder(TupleOrder.Descending);
+		}
 	    
-	    short[] attrSize = new short[2];
-	    attrSize[0] =  STRINGSIZE;
-	    attrSize[1] = STRINGSIZE;
-	    
-	    TupleOrder[] order = new TupleOrder[2];
-	    order[0] = new TupleOrder(TupleOrder.Ascending);
-	    order[1] = new TupleOrder(TupleOrder.Descending);
-	    
-	    FldSpec []  Sprojection = {
-	    	       new FldSpec(new RelSpec(RelSpec.outer), 1),
-	    	       new FldSpec(new RelSpec(RelSpec.outer), 2),
-	    	       new FldSpec(new RelSpec(RelSpec.outer), 3),
-	    	       new FldSpec(new RelSpec(RelSpec.outer), 4),
-	    	    }; 
-	    
-	    ColumnarFileScan cfS = new ColumnarFileScan("myfile", attrType, attrSize, (short) attrType.length, Sprojection.length, Sprojection, null);
+	    ColumnarFileScan cfS = new ColumnarFileScan(columnFile, type, strSizes, (short) type.length, Sprojection.length, Sprojection, null);
 	    
 	    ColumnarSort cSort = null;
 	    try
 	    {
-	    	cSort = new ColumnarSort(attrType,(short)attrType.length,attrSize,"myfile",1,order[0],STRINGSIZE, SORTPGNUM, cfS);
+	    	cSort = new ColumnarSort(type, (short)type.length, strSizes, columnFile, victimColumnNumber, order[0], STRINGSIZE, SORTPGNUM, cfS);
 	    }
 	    catch (Exception e) 
 	    {      
@@ -72,7 +111,7 @@ public class ColumnarSortTest implements GlobalConst
 	    
 	    while(t!=null)
 	    {
-	    	  t.print(attrType);
+	    	  t.print(type);
 	    	  
 	    	  try 
 	    	  {
@@ -94,6 +133,21 @@ public class ColumnarSortTest implements GlobalConst
 		}
 		System.out.println("Read count: " + PCounter.rcounter);
 		System.out.println("Write count: " + PCounter.wcounter);
+	}
+	
+	private static int getVictimColumnNumber(String victimColumnName) throws FileNotFoundException 
+	{
+		Scanner s = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
+		while(s.hasNext())
+		{
+			String[] colsInSchema = s.nextLine().split("\t");
+			if(colsInSchema[0].equals(victimColumnName.toLowerCase()))
+			{
+				victimColumnNumber= Integer.parseInt(colsInSchema[1]);
+				return victimColumnNumber;
+			}
+		}
+		return -1;
 	}
 	
 	static void initDB(String columnDBName)
