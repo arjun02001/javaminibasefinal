@@ -614,10 +614,12 @@ public class Heapfile implements Filetype,  GlobalConst {
       dpinfo_ondirpage.pageId.pid = dpinfo.pageId.pid;
       dpinfo_ondirpage.flushToTuple();
       
-      
       unpinPage(currentDirPageId, true /* = DIRTY */);
       
-      flushBuffer();
+      if(SystemDefs.BATCH_INSERT_FLAG)
+      {
+    	  flushBuffer();
+      }
       return rid;
       
     }
