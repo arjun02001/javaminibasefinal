@@ -181,6 +181,57 @@ public class ColumnIndexScan extends Iterator implements GlobalConst{
 	    return true;
 		
 	}
+	public boolean scanColumnarBTreeIndex(ColumnarFile cf, int columnNo, CondExpr selects[],  AttrType[] type, boolean isFirst, MarkEliminate newEliminate) throws InvalidSlotNumberException, HFException, HFDiskMgrException, HFBufMgrException, Exception
+	{
+	    FldSpec[] projlist = new FldSpec[1];
+	    RelSpec rel = new RelSpec(RelSpec.outer); 
+	    projlist[0] = new FldSpec(rel, 1);
+	    
+	    AttrType[] tempTypes =  new AttrType[1];
+	    tempTypes[0] = new AttrType(cf.type[columnNo-1].attrType);
+	   
+	    short[] strSizes = new short[1];
+	    strSizes[0] = cf.attrSize[columnNo-1];
+	
+	    
+	    // start index scan
+	    ColumnIndexScan iscan = null;
+        //IndexScan iscan = null;
+ 	    //iscan = new IndexScan(new IndexType(IndexType.B_Index), this.name + "." + (columnNo-1), this.name + "_Btree." + (columnNo-1), tempTypes, strSizes, 1, 1, projlist, selects, 1, true);
+	    iscan = new ColumnIndexScan(new IndexType(IndexType.B_Index), cf.heapFileNames[columnNo-1], cf.name + "_Btree." + (columnNo-1), tempTypes, strSizes, 1, 1, projlist, selects, 1, true);
+	    
+        Tuple t = new Tuple();
+		RID rid = new RID();
+	    String outStrVal = null;
+	    Integer outIntVal = null;
+	    Integer position = null;
+	    PositionData newPositionData = new PositionData();
+		
+	    rid = iscan.get_next_rid();
+	    int count = 0;
+	    Mark delete = new Mark();
+	    while (rid != null) 
+	    {
+	    	position = cf.columnFiles[columnNo-1].getPositionForRID(rid);
+	    	if(!delete.isDeleted(cf.name, position))
+	    	{	
+	    		if(isFirst)
+	    			newEliminate.setEliminated(cf.name, position);
+	    		else
+	    			newEliminate.testAndSetEliminated(cf.name, position);
+		    	count++;
+	    	}
+			rid = iscan.get_next_rid();
+		    
+	    }
+
+	    iscan.close();
+	    System.out.println("Number of records displayed is: " + count); 
+	    System.out.println("BTreeIndex Scan Completed\n" ); 
+	    
+	    return true;
+		
+	}
 
 	public boolean checkIndex(ColumnarFile cf, int columnNo, CondExpr selects[]) throws InvalidSlotNumberException, HFException, HFDiskMgrException, HFBufMgrException, Exception
 	{
@@ -235,6 +286,7 @@ public class ColumnIndexScan extends Iterator implements GlobalConst{
 	    return true;
 		
 	}
+
 
 	private static void printProjectionData(String columnFile, Tuple t, String targetColumnNames, AttrType[] type) throws FieldNumberOutOfBoundException, IOException 
 	{
