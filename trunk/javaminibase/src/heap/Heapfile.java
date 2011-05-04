@@ -46,7 +46,7 @@ interface  Filetype {
 public class Heapfile implements Filetype,  GlobalConst {
   
   
-  PageId      _firstDirPageId;   // page number of header page
+  public PageId      _firstDirPageId;   // page number of header page
   PageId	  _currentDataPageId;
   PageId	  _currentDirPageId;
   
@@ -971,7 +971,7 @@ public class Heapfile implements Filetype,  GlobalConst {
    * short cut to access the pinPage function in bufmgr package.
    * @see bufmgr.pinPage
    */
-  private void pinPage(PageId pageno, Page page, boolean emptyPage)
+  public void pinPage(PageId pageno, Page page, boolean emptyPage)
     throws HFBufMgrException {
     
     try {
@@ -992,7 +992,7 @@ public class Heapfile implements Filetype,  GlobalConst {
    * short cut to access the unpinPage function in bufmgr package.
    * @see bufmgr.unpinPage
    */
-  private void unpinPage(PageId pageno, boolean dirty)
+  public void unpinPage(PageId pageno, boolean dirty)
     throws HFBufMgrException {
 
     try {
