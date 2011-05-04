@@ -57,7 +57,7 @@ public class Index implements GlobalConst {
 		initDB(dbname, 1000);
 		
 
-		Scanner s1 = new Scanner(new FileInputStream("/host/" + columnFile + "_schema.txt"));
+		Scanner s1 = new Scanner(new FileInputStream(DIRPATH + columnFile + "_schema.txt"));
 
 		int numColumns = 0;
 		while(s1.hasNextLine())	//count the no. of lines in schema file
